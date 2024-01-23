@@ -1,100 +1,57 @@
 package com.example.mykotlintest.mqtt;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mykotlintest.R;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 
+/**
+ * MQTT
+ */
 public class MqttActivity extends AppCompatActivity {
 
     private String TAG = "MqttActivity";
-    String serverUri = "commserver1.qalink.cn:30521";
-    String clientId = "1";
-    String subscriptionTopic = "qaiot/mqtt/user/4MFVN28CZYAY3RPC111A";
-    String publishTopic = "qaiot/mqtt/4MFVN28CZYAY3RPC111A";
+    String serverUri = "ssl://commserver1.qalink.cn:30521";
+    String clientId = "b4a36b0707a4326da70cd7717d070c6c1705982342260";
+
     MqttAndroidClient mqttAndroidClient;
+    MqttConnectOptions mqttConnectOptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mqtt);
 
+        initView();
+    }
+
+    private void initView() {
         mqttAndroidClient = new MqttAndroidClient(this, serverUri, clientId);
+        mqttConnectOptions = MqttHelp.mqttInit(this);
 
-        mqttAndroidClient.setCallback(new MqttCallbackExtended() {
-            @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-                Log.i(TAG,"reconnect = "+reconnect);
-                if (reconnect) {
-                    // Because Clean Session is true, we need to re-subscribe
-                    subscribeToTopic();
-                } else {
-                }
-            }
-
-            @Override
-            public void connectionLost(Throwable cause) {
-                Log.i(TAG,"connectionLost");
-            }
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                Log.i(TAG,"message = "+message.toString());
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                Log.i(TAG,"deliveryComplete");
-            }
-        });
-
-
+        // MQTT 状态回调（连上、断开）
+        mqttAndroidClient.setCallback(new MMqttCallback());
     }
 
-
-    /**
-     * 开始订阅
-     */
-    private void subscribeToTopic() {
-        try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.i(TAG,"订阅成功");
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.i(TAG,"订阅失败");
-                }
-            });
-        } catch (MqttException e) {
-            throw new RuntimeException(e);
-        }
+    public void btnConnect(View view) {
+        MqttHelp.mqttConnect(mqttAndroidClient, mqttConnectOptions);
     }
 
-    /**
-     * 发布消息
-     */
-    private void publishMessage() {
-        MqttMessage message = new MqttMessage();
-        if (mqttAndroidClient.isConnected()) {
-            try {
-                mqttAndroidClient.publish(publishTopic, message);
-            } catch (MqttException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public void btnSubscribe(View view) {
+        // 可以同时订阅多个主题
+        String[] topic = {MqttHelp.subscriptionTopic};
+        int[] qos = {1}; // 发布消息的服务质量
+        MqttHelp.subscribeToTopic(topic, qos, mqttAndroidClient);
     }
+
+    public void btnPublish(View view) {
+        String msg = "{\"cmd\":66352,\"cmd_type\":\"request\",\"sessionid\":0,\"value\":3}";
+        MqttHelp.publishMessage(mqttAndroidClient, msg, MqttHelp.publishTopic);
+    }
+
 }

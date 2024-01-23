@@ -1,0 +1,4 @@
+org.eclipse.paho.android.service
+mipmap ic_launcher
+style AppBaseTheme
+style AppTheme
