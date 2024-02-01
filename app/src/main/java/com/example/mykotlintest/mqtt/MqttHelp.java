@@ -14,10 +14,13 @@ import javax.net.ssl.SSLSocketFactory;
 public class MqttHelp {
 
     private static String TAG = "MqttHelp";
+
+    public static String[] uids = {"4MFVN28CZYAY3RPC111A","YZXEJDHU177YRKWM111A"}; // 设备UID
+
     // 订阅主题Topic
-    public static String subscriptionTopic = "qaiot/mqtt/user/4MFVN28CZYAY3RPC111A";
+    public static String subscriptionTopic = "qaiot/mqtt/user/";
     // 发布主题Topic
-    public static String publishTopic = "qaiot/mqtt/4MFVN28CZYAY3RPC111A";
+    public static String publishTopic = "qaiot/mqtt/";
 
     /**
      * 初始化
@@ -25,7 +28,7 @@ public class MqttHelp {
     public static MqttConnectOptions mqttInit(Context context) {
         // 连接
         String username = "b4a36b0707a4326da70cd7717d070c6c";
-        String pwd = "2835a2f0122049a2b3dd";
+        String pwd = "b3c3f7b681bf43278d61";
 
         MqttConnectOptions conOpt = new MqttConnectOptions();
         conOpt.setCleanSession(true);// 清除缓存
@@ -73,7 +76,30 @@ public class MqttHelp {
 
 
     /**
-     * 订阅主题 ： 可以一次订阅一个或者多个主题
+     * 一次订阅一个主题 ： 可以一次订阅一个或者多个主题
+     *
+     * @param qos 发布消息的服务质量，即：保证消息传递的次数 , 1：默认1，表示传递一次
+     */
+    public static void subscribeToTopic(String topic, int qos, MqttAndroidClient mqttAndroidClient) {
+        try {
+            mqttAndroidClient.subscribe(topic, qos, null, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    Log.i(TAG, "订阅成功");
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    Log.i(TAG, "订阅失败 : exception = "+exception.toString());
+                }
+            });
+        } catch (MqttException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 一次订阅多个主题 ： 可以一次订阅一个或者多个主题
      *
      * @param qos 发布消息的服务质量，即：保证消息传递的次数 , 1：默认1，表示传递一次
      */
@@ -87,7 +113,7 @@ public class MqttHelp {
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.i(TAG, "订阅失败");
+                    Log.i(TAG, "订阅失败 : exception = "+exception.toString());
                 }
             });
         } catch (MqttException e) {
@@ -98,7 +124,7 @@ public class MqttHelp {
     /**
      * 发布消息
      */
-    public static void publishMessage(MqttAndroidClient mqttAndroidClient, String msg,String publishTopic) {
+    public static void publishMessage(MqttAndroidClient mqttAndroidClient, String msg, String publishTopic) {
 //        MqttMessage message = new MqttMessage();
         Log.e(TAG, "msg = " + msg);
         if (mqttAndroidClient.isConnected()) {
@@ -116,6 +142,28 @@ public class MqttHelp {
         }
     }
 
+    /**
+     * 取消订阅
+     */
+    public static void unsubscribe(MqttAndroidClient mqttAndroidClient, String[] topic) {
+        try {
+            Log.i(TAG, "execute unsubscribe topic = " + topic);
+            if (mqttAndroidClient != null) mqttAndroidClient.unsubscribe(topic);
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 断开连接
+     */
+    public static void disconnect(MqttAndroidClient mqttAndroidClient) {
+        try {
+            if (mqttAndroidClient != null) mqttAndroidClient.disconnect();
+        } catch (Exception e) {
+            Log.i(TAG, e.toString());
+        }
+    }
 
 //    public void publish(MqttAndroidClient mqttAndroidClient, String msg, String topic, int qos, boolean retained) {
 //        try {

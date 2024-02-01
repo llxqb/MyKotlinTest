@@ -17,7 +17,7 @@ public class MMqttCallback implements MqttCallbackExtended {
      */
     @Override
     public void connectComplete(boolean reconnect, String serverURI) {
-        // 可以做订阅主题
+        // 连接完成可以进行订阅主题
         Log.i(TAG, "MqttAndroidClient 回调， 是否是自动连接成功 = " + reconnect + " , serverURI = " + serverURI);
     }
 
@@ -33,7 +33,7 @@ public class MMqttCallback implements MqttCallbackExtended {
     }
 
     /**
-     * 发布消息回调处理
+     * 收到发布消息回调处理
      *
      * @param topic   name of the topic on the message was published to
      * @param message the actual message.
@@ -47,7 +47,7 @@ public class MMqttCallback implements MqttCallbackExtended {
     }
 
     /**
-     * 消息发送完成
+     * 发布消息发送完成
      *
      * @param token the delivery token associated with the message.
      */
